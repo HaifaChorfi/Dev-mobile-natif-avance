@@ -13,7 +13,7 @@ const firebaseConfig = {
   appId: "1:837004906865:web:0b6404c4b1dee15ea3a6d0",
   measurementId: "G-NPKQTTH7GN"
 };
-const TEACHER_PIN = "mobile2026"; 
+const TEACHER_PIN = "mobile2026"; // à changer
 const DUR = 30; // secondes par question (limite stricte)
 const db = getDatabase(initializeApp(firebaseConfig));
 
@@ -21,17 +21,17 @@ const db = getDatabase(initializeApp(firebaseConfig));
 const QCMS = [
   {
     id: "qcm1",
-    titre: "QCM 1 — Séance 1",
-    sous: "Fondamentaux du natif : cycle de vie, threading, architecture",
+    titre: "QCM 1 — SharedPreferences",
+    sous: "Stockage clé-valeur sous Android : lecture, écriture, bonnes pratiques",
     questions: [
-      { q: "Quel callback Android est appelé quand une Activity redevient visible après avoir été masquée ?", o: ["onCreate()", "onRestart()", "onDestroy()", "onSaveInstanceState()"], a: 1 },
-      { q: "En Kotlin, quel dispatcher est destiné aux opérations réseau et disque ?", o: ["Dispatchers.Main", "Dispatchers.Default", "Dispatchers.IO", "Dispatchers.Unconfined"], a: 2 },
-      { q: "Sur iOS, quelle méthode UIViewController est appelée une seule fois, lorsque la vue est chargée en mémoire ?", o: ["viewDidLoad()", "viewWillAppear(_:)", "viewDidAppear(_:)", "loadView() uniquement"], a: 0 },
-      { q: "Quel est le rôle d'un ViewModel Android ?", o: ["Dessiner l'interface", "Conserver l'état UI à travers les changements de configuration", "Gérer les permissions", "Remplacer la base de données"], a: 1 },
-      { q: "En Swift, que fait [weak self] dans une closure ?", o: ["Rend self immuable", "Évite un cycle de rétention", "Exécute la closure en arrière-plan", "Force le déballage de self"], a: 1 },
-      { q: "Quel composant Jetpack Compose permet de conserver une valeur d'état entre recompositions ?", o: ["remember", "LaunchedEffect", "val", "Modifier"], a: 0 },
-      { q: "Quelle architecture sépare Model, View et une couche d'état observable, recommandée par Google ?", o: ["VIPER", "MVVM", "MVC classique", "Clean Swift"], a: 1 },
-      { q: "Sur iOS, quel mot-clé Swift marque une fonction pouvant suspendre son exécution (concurrence structurée) ?", o: ["defer", "lazy", "async", "inout"], a: 2 },
+      { q: "Quel type de données SharedPreferences permet-il de stocker ?", o: ["Des objets Kotlin quelconques", "Des paires clé-valeur de types simples (Int, String, Boolean, Float, Long, Set<String>)", "Des tables relationnelles", "Des fichiers binaires volumineux"], a: 1 },
+      { q: "Quelle instruction ouvre un fichier de préférences nommé « config » accessible uniquement par l'application ?", o: ["getSharedPreferences(\"config\", MODE_PRIVATE)", "openFileOutput(\"config\", MODE_PRIVATE)", "getPreferences(\"config\")", "SharedPreferences.create(\"config\")"], a: 0 },
+      { q: "Quelle est la différence entre apply() et commit() ?", o: ["Aucune, ce sont des synonymes", "apply() est synchrone, commit() est asynchrone", "apply() écrit en mémoire puis sur disque en arrière-plan, commit() écrit de façon synchrone et renvoie un booléen", "commit() ne fonctionne que sur le thread principal"], a: 2 },
+      { q: "Où SharedPreferences enregistre-t-il physiquement les données ?", o: ["Dans un fichier XML du dossier shared_prefs de l'application", "Dans une base SQLite partagée du système", "Dans le cloud Google", "Dans la carte SD publique"], a: 0 },
+      { q: "Que renvoie prefs.getString(\"nom\", \"inconnu\") si la clé « nom » n'existe pas ?", o: ["null", "Une exception", "\"inconnu\"", "Une chaîne vide"], a: 2 },
+      { q: "Quelle ligne enregistre correctement l'entier 10 sous la clé « score » ?", o: ["prefs.putInt(\"score\", 10)", "prefs.edit().putInt(\"score\", 10)", "prefs.save(\"score\", 10)", "prefs.edit().putInt(\"score\", 10).apply()"], a: 3 },
+      { q: "Quel mode de création faut-il utiliser pour que le fichier ne soit pas lisible par d'autres applications ?", o: ["MODE_WORLD_READABLE", "MODE_PRIVATE", "MODE_WORLD_WRITEABLE", "MODE_APPEND"], a: 1 },
+      { q: "Quelle solution moderne Google recommande-t-il pour remplacer SharedPreferences ?", o: ["Jetpack DataStore", "Intent extras", "ContentProvider", "WorkManager"], a: 0 },
     ],
   },
 ];
