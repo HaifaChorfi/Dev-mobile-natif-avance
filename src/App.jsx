@@ -13,7 +13,7 @@ const firebaseConfig = {
   appId: "1:837004906865:web:0b6404c4b1dee15ea3a6d0",
   measurementId: "G-NPKQTTH7GN"
 };
-const TEACHER_PIN = "mobile2026"; // à changer
+
 const DUR = 30; // secondes par question (limite stricte)
 const db = getDatabase(initializeApp(firebaseConfig));
 
