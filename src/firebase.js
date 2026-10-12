@@ -40,4 +40,4 @@ export function ensureAuth() {
   });
 }
 
-export const TEACHER_PASSCODE = import.meta.env.VITE_TEACHER_PASSCODE || "";
+export const TEACHER_PASSCODE = sem-2026
