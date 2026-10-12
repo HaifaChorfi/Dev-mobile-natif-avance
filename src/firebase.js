@@ -40,4 +40,4 @@ export function ensureAuth() {
   });
 }
 
-export const TEACHER_PASSCODE = sem-2026
+export const TEACHER_PASSCODE = "sem-2026"
