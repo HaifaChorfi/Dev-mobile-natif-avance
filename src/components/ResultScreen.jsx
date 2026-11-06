@@ -60,9 +60,54 @@ export default function ResultScreen({ tp, student, result, onRestart }) {
         )}
       </div>
 
+
+      {tp.showCorrection && result.answers && (
+        <div className="review">
+          <h3 className="review-title">Détail par question</h3>
+
+          <div className="review-dots" aria-hidden="true">
+            {tp.questions.map((q, i) => (
+              <span
+                key={q.id}
+                className={`review-dot ${result.answers[q.id] === q.correctIndex ? "ok" : "ko"}`}
+              >
+                {i + 1}
+              </span>
+            ))}
+          </div>
+
+          {tp.questions.map((q, i) => {
+            const chosen = result.answers[q.id];
+            const answered = Number.isInteger(chosen);
+            const ok = chosen === q.correctIndex;
+            return (
+              <div key={q.id} className={`review-item ${ok ? "ok" : "ko"}`}>
+                <div className="review-head">
+                  <span className="review-badge">
+                    {ok ? "✔ Bonne réponse" : answered ? "✘ Mauvaise réponse" : "✘ Sans réponse"}
+                  </span>
+                  <span className="review-num">Question {i + 1}</span>
+                </div>
+                <p className="review-q">{q.question}</p>
+                <p className="review-line">
+                  Votre réponse : <strong>{answered ? q.options[chosen] : "aucune (temps écoulé)"}</strong>
+                </p>
+                {!ok && (
+                  <p className="review-line">
+                    Bonne réponse : <strong>{q.options[q.correctIndex]}</strong>
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       <p className="note">
-        À score égal, l'étudiant le plus rapide est mieux classé. Le rang évolue à mesure que les autres étudiants terminent le test. Le corrigé détaillé
-        n'est pas affiché : votre enseignant le partagera en séance.
+        À score égal, l'étudiant le plus rapide est mieux classé. Le rang évolue à mesure que les autres étudiants terminent le test.{" "}
+        {tp.showCorrection && result.answers
+          ? "Le détail ci-dessus n'est affiché qu'une seule fois : notez-le avant de quitter cette page."
+          : "Le corrigé détaillé n'est pas affiché : votre enseignant le partagera en séance."}
       </p>
 
       <div style={{ display: "flex", justifyContent: "center", marginTop: "1.4rem" }}>

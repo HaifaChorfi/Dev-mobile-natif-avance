@@ -1,10 +1,11 @@
 import { useState } from "react";
 import TPMenu from "./TPMenu.jsx";
 import ResultsTable from "./ResultsTable.jsx";
+import SessionControl from "./SessionControl.jsx";
 import { getTp } from "../data/tps.js";
 
 export default function TeacherDashboard({ onLogout }) {
-  const [activeTp, setActiveTp] = useState("tp2");
+  const [activeTp, setActiveTp] = useState("tp3");
 
   return (
     <div className="dashboard">
@@ -21,6 +22,7 @@ export default function TeacherDashboard({ onLogout }) {
         </div>
 
         <div style={{ marginTop: "0.6rem" }}>
+          {getTp(activeTp).requireSession && <SessionControl key={"s-" + activeTp} tp={getTp(activeTp)} />}
           <ResultsTable key={activeTp} tp={getTp(activeTp)} />
         </div>
       </div>

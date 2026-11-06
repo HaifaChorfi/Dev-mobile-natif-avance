@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { ref, update, serverTimestamp } from "firebase/database";
 import { auth, db, ensureAuth } from "../firebase.js";
-import { TIME_PER_QUESTION } from "../data/tps.js";
+import { getTimePerQuestion } from "../data/tps.js";
 import { loadProgress, saveProgress, clearProgress } from "../lib/progress.js";
-
-const LIMIT_MS = TIME_PER_QUESTION * 1000;
 
 // Construit l'état de départ. En cas de reprise après rechargement, l'horloge
 // n'est PAS remise à zéro : le temps écoulé hors de la page est décompté.
 function buildInitial(tp, student, resume) {
+  const LIMIT_MS = getTimePerQuestion(tp) * 1000;
   const total = tp.questions.length;
   const saved = resume ? loadProgress(tp.id, student.id) : null;
   if (!saved) return { index: 0, startedAt: Date.now(), beganAt: Date.now(), answers: {} };
@@ -24,6 +23,8 @@ function buildInitial(tp, student, resume) {
 export default function StudentQuiz({ tp, student, resume, onFinished }) {
   const questions = tp.questions;
   const total = questions.length;
+  const limitSec = getTimePerQuestion(tp);
+  const LIMIT_MS = limitSec * 1000;
 
   const [s, setS] = useState(() => buildInitial(tp, student, resume));
   const [now, setNow] = useState(Date.now());
@@ -113,7 +114,7 @@ export default function StudentQuiz({ tp, student, resume, onFinished }) {
       });
 
       clearProgress(tp.id, student.id);
-      onFinished({ score, total, durationMs });
+      onFinished({ score, total, durationMs, answers: finalAnswers });
     } catch (err) {
       console.error(err);
       sendingRef.current = false;
@@ -152,7 +153,7 @@ export default function StudentQuiz({ tp, student, resume, onFinished }) {
       <div className="timer-bar">
         <div
           className={"timer-bar-fill" + (timeLeft <= 10 ? " urgent" : "")}
-          style={{ width: `${(timeLeft / TIME_PER_QUESTION) * 100}%` }}
+          style={{ width: `${(timeLeft / limitSec) * 100}%` }}
         />
       </div>
 

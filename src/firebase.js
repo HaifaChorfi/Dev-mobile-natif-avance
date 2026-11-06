@@ -3,7 +3,7 @@ import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
-   apiKey: "AIzaSyCtK7G954PKqz2u8Hw9igz2ckRTA9J2O3I",
+  apiKey: "AIzaSyCtK7G954PKqz2u8Hw9igz2ckRTA9J2O3I",
   authDomain: "kotlinqcm.firebaseapp.com",
   databaseURL: "https://kotlinqcm-default-rtdb.firebaseio.com",
   projectId: "kotlinqcm",

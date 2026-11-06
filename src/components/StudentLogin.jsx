@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { ref, get, set } from "firebase/database";
+import { useEffect, useState } from "react";
+import { ref, get, set, onValue } from "firebase/database";
 import { db, ensureAuth } from "../firebase.js";
-import { TP_LIST } from "../data/tps.js";
+import { TP_LIST, getTp, getTimePerQuestion } from "../data/tps.js";
 import { loadProgress } from "../lib/progress.js";
 import { buildStudent } from "../lib/names.js";
 
@@ -13,6 +13,39 @@ export default function StudentLogin({ onBack, onContinue }) {
   const [nom, setNom] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const tp = getTp(tpId);
+  const seconds = getTimePerQuestion(tp);
+
+  // Statut de la session (uniquement pour les QCM qui exigent une activation par l'enseignant)
+  // "n/a" | "loading" | "open" | "closed" | "error"
+  const [sessionState, setSessionState] = useState({ tpId: null, value: "loading" });
+  const sessionStatus = !tp.requireSession
+    ? "n/a"
+    : sessionState.tpId === tpId
+      ? sessionState.value
+      : "loading";
+
+  useEffect(() => {
+    if (!tp.requireSession) return undefined;
+    let cancelled = false;
+    let unsubscribe = () => {};
+    const publish = (value) => setSessionState({ tpId, value });
+    ensureAuth()
+      .then(() => {
+        if (cancelled) return;
+        unsubscribe = onValue(
+          ref(db, `sessions/${tpId}/active`),
+          (snap) => publish(snap.val() === true ? "open" : "closed"),
+          () => publish("error")
+        );
+      })
+      .catch(() => publish("error"));
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, [tpId, tp.requireSession]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -38,6 +71,21 @@ export default function StudentLogin({ onBack, onContinue }) {
       if (saved && saved.uid === user.uid) {
         onContinue({ tpId, student, resume: true });
         return;
+      }
+
+      // 2 bis) Session : pour démarrer une NOUVELLE tentative, l'enseignant doit avoir activé la session
+      if (tp.requireSession) {
+        let open = false;
+        try {
+          open = (await get(ref(db, `sessions/${tpId}/active`))).val() === true;
+        } catch {
+          setError("Impossible de vérifier l'état de la session. Prévenez l'enseignant.");
+          return;
+        }
+        if (!open) {
+          setError("La session n'est pas ouverte. Attendez que l'enseignant l'active, puis réessayez.");
+          return;
+        }
       }
 
       // 3) Première tentative : verrou "étudiant" (écriture unique imposée par les règles Firebase).
@@ -75,7 +123,7 @@ export default function StudentLogin({ onBack, onContinue }) {
     <div className="card">
       <h2>Passer un QCM</h2>
       <p style={{ color: "var(--muted)", marginTop: "0.4rem" }}>
-        Une seule tentative par test. 30 secondes par question, sans retour en arrière.
+        Une seule tentative par test. {seconds} secondes par question, sans retour en arrière.
       </p>
 
       <form onSubmit={handleSubmit} style={{ marginTop: "1.4rem" }}>
@@ -83,10 +131,29 @@ export default function StudentLogin({ onBack, onContinue }) {
         <select id="tp-select" value={tpId} onChange={(e) => setTpId(e.target.value)}>
           {availableTps.map((t) => (
             <option key={t.id} value={t.id}>
-              {t.label} ({t.questions.length} questions)
+              {t.label} ({t.questions.length} questions · {getTimePerQuestion(t)} s)
             </option>
           ))}
         </select>
+
+        {sessionStatus !== "n/a" && (
+          <p
+            role="status"
+            style={{
+              margin: "-0.4rem 0 1rem",
+              padding: "0.55rem 0.8rem",
+              borderRadius: "10px",
+              fontSize: "0.88rem",
+              background: sessionStatus === "open" ? "var(--green-100)" : "#fbf1e3",
+              color: sessionStatus === "open" ? "var(--green-700)" : "var(--amber)",
+            }}
+          >
+            {sessionStatus === "loading" && "Vérification de la session…"}
+            {sessionStatus === "open" && "🟢 Session ouverte : vous pouvez démarrer."}
+            {sessionStatus === "closed" && "🟠 En attente : l'enseignant n'a pas encore activé la session."}
+            {sessionStatus === "error" && "⚠️ État de la session indisponible. Prévenez l'enseignant."}
+          </p>
+        )}
 
         <label htmlFor="prenom">Prénom</label>
         <input
