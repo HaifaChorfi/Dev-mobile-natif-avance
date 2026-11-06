@@ -65,7 +65,7 @@ const Q2 = [
 const TP_LIST = [
   { id: "tp1", short: "QCM1", title: "SharedPreferences", description: "Préférences persistantes : lecture/écriture, apply() vs commit(), modes d'accès, DataStore.", enabled: true, questions: Q1 },
   { id: "tp2", short: "QCM2", title: "SQLite — base de données locale", description: "SQLiteOpenHelper, CRUD, Cursor, requêtes paramétrées, migration de schéma.", enabled: true, questions: Q2 },
-  { id: "tp3", short: "QCM3", title: "Retrofit -- Web service HTTP ", description: "Échanges avec une API via HTTP ", enabled: true, questions:Q3 },
+  { id: "tp3", short: "QCM3", title: "Retrofit -- Web service HTTP ", description: "Échanges avec une API via HTTP ", enabled: false },
   { id: "tp4", short: "QCM4", title: "Géolocalisation", description: "Google Maps et localisation de l'utilisateur.", enabled: false },
   { id: "tp5", short: "QCM5", title: "Connectivité", description: "Bluetooth, Wi-Fi et USB.", enabled: false },
   { id: "tp8", short: "QCM8", title: "Multimédia", description: "Lecteur audio et vidéo.", enabled: false },
