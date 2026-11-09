@@ -17,7 +17,8 @@ const firebaseConfig = {
 
 
 const TEACHER_PASSCODE = "mobile2026"; 
-const DUR = 30; 
+const DUR = 30; // durée par défaut (secondes) ; un QCM peut définir sa propre durée avec « dur »
+const durOf = (tp) => tp.dur ?? DUR;
 const EXPECTED = 50; 
 
 const app = initializeApp(firebaseConfig);
@@ -62,10 +63,23 @@ const Q2 = [
   { q: "Où est stocké physiquement le fichier de la base SQLite d'une application Android ?", o: ["Sur la carte SD, dans Documents", "Dans le cloud Google, synchronisé automatiquement", "Dans le dossier res/ du projet", "Dans un dossier privé de l'application : data/data/<package>/databases/"], a: 3 },
 ];
 
+const Q3 = [
+  { q: "Quelle déclaration de ApiService permet de supprimer le produit n° 5 sur le serveur ?", o: ["@GET(\"products/5\") : le serveur supprime la ressource après l'avoir lue", "@POST(\"products/delete\") avec @Body : on envoie l'ordre de suppression au serveur", "@PUT(\"products/5\") avec un corps vide : on remplace le produit par rien du tout", "@DELETE(\"products/{id}\") avec @Path(\"id\") : le verbe DELETE sur l'URL du produit"], a: 3 },
+  { q: "Quelle association verbe HTTP / opération CRUD est correcte ?", o: ["POST pour créer, PUT pour modifier, DELETE pour supprimer", "GET pour créer, POST pour lire, DELETE pour modifier, PUT pour supprimer", "PUT pour supprimer, GET pour modifier, POST pour lire, DELETE pour créer", "DELETE pour créer, PUT pour lire, GET pour supprimer, POST pour modifier"], a: 0 },
+  { q: "Quelle déclaration de ApiService produit la requête GET https://dummyjson.com/products/search?q=phone ?", o: ["@GET(\"products/search\") suspend fun rechercher(@Path(\"q\") motCle: String): ReponseProduits", "@GET(\"products/{q}\") suspend fun rechercher(@Query(\"q\") motCle: String): ReponseProduits", "@GET(\"products/search\") suspend fun rechercher(@Query(\"q\") motCle: String): ReponseProduits", "@GET(\"products/search\") suspend fun rechercher(@Body motCle: String): ReponseProduits"], a: 2 },
+  { q: "Avec @GET(\"products/{id}\") suspend fun getProduit(@Path(\"id\") id: Int), que se passe-t-il quand on appelle getProduit(5) ?", o: ["Retrofit envoie GET /products?id=5, avec 5 en paramètre de requête", "Retrofit remplace {id} par 5 et envoie GET /products/5", "Retrofit envoie GET /products avec la valeur 5 dans le corps JSON", "Retrofit envoie GET /products avec l'en-tête HTTP « id: 5 »"], a: 1 },
+  { q: "Pour un POST vers products/add, comment transmettre l'objet NouveauProduit au serveur ?", o: ["Avec @Body : Gson convertit l'objet en JSON dans le corps de la requête", "Avec @Path : l'objet est inséré dans le chemin de l'URL de la requête", "Avec @Query : l'objet est ajouté après le « ? » dans l'URL de la requête", "Avec @Header : l'objet est envoyé dans les en-têtes HTTP de la requête"], a: 0 },
+  { q: "Quelle déclaration de ApiService permet de modifier le produit n° 5 en envoyant son nouveau titre et son nouveau prix ?", o: ["@PUT(\"products/{id}\") suspend fun modifier(@Path(\"id\") id: Int, @Query(\"title\") t: String): Produit", "@PUT(\"products/{id}\") suspend fun modifier(@Path(\"id\") id: Int, @Body p: NouveauProduit): Produit", "@POST(\"products/{id}\") suspend fun modifier(@Header(\"id\") id: Int, @Body p: NouveauProduit): Produit", "@GET(\"products/{id}\") suspend fun modifier(@Path(\"id\") id: Int, @Body p: NouveauProduit): Produit"], a: 1 },
+  { q: "Que fait l'instruction « retrofit.create(ApiService::class.java) » dans RetrofitClient ?", o: ["Elle télécharge le fichier ApiService depuis le serveur dummyjson.com", "Elle crée dans la base SQLite une table pour chaque fonction de ApiService", "Elle génère l'implémentation de l'interface ApiService à partir de ses annotations", "Elle envoie immédiatement une requête GET pour chaque fonction de ApiService"], a: 2 },
+  { q: "Quel est le rôle de GsonConverterFactory dans la construction de Retrofit ?", o: ["Chiffrer les échanges avec le serveur en utilisant le protocole HTTPS", "Journaliser chaque requête et chaque réponse dans le Logcat d'Android", "Convertir le JSON en objets Kotlin, et inversement", "Ouvrir la connexion réseau et gérer les délais d'attente (timeouts)"], a: 2 },
+  { q: "Quelle phrase décrit correctement la relation entre Retrofit et OkHttp ?", o: ["Retrofit remplace complètement OkHttp : les deux bibliothèques ne peuvent pas être utilisées ensemble dans un projet", "OkHttp convertit le JSON en objets Kotlin pendant que Retrofit se charge d'envoyer les requêtes sur le réseau", "Retrofit n'est utile que pour télécharger des images, alors qu'OkHttp gère toutes les requêtes qui renvoient du JSON", "Retrofit décrit l'API par une interface et s'appuie sur OkHttp pour envoyer les requêtes"], a: 3 },
+  { q: "Comment afficher dans le Logcat la requête envoyée et la réponse JSON reçue pendant le TP ?", o: ["Ajouter un HttpLoggingInterceptor (BODY) à OkHttpClient, filtrer sur « OkHttp »", "Écrire un appel Log.d dans chaque fonction déclarée à l'intérieur de l'interface ApiService", "Ajouter l'annotation @Logging devant chaque fonction de l'interface ApiService de Retrofit", "Remplacer GsonConverterFactory par un convertisseur spécialisé dans la journalisation"], a: 0 },
+];
+
 const TP_LIST = [
   { id: "tp1", short: "QCM1", title: "SharedPreferences", description: "Préférences persistantes : lecture/écriture, apply() vs commit(), modes d'accès, DataStore.", enabled: true, questions: Q1 },
   { id: "tp2", short: "QCM2", title: "SQLite — base de données locale", description: "SQLiteOpenHelper, CRUD, Cursor, requêtes paramétrées, migration de schéma.", enabled: true, questions: Q2 },
-  { id: "tp3", short: "QCM3", title: "Retrofit -- Web service HTTP ", description: "Échanges avec une API via HTTP ", enabled: true },
+  { id: "tp3", short: "QCM3", title: "Retrofit — Web service REST", description: "Opérations HTTP (GET, POST, PUT, DELETE), annotations Retrofit, convertisseur Gson, OkHttp.", enabled: true, dur: 35, review: true, questions: Q3 },
   { id: "tp4", short: "QCM4", title: "Géolocalisation", description: "Google Maps et localisation de l'utilisateur.", enabled: false },
   { id: "tp5", short: "QCM5", title: "Connectivité", description: "Bluetooth, Wi-Fi et USB.", enabled: false },
   { id: "tp8", short: "QCM8", title: "Multimédia", description: "Lecteur audio et vidéo.", enabled: false },
@@ -222,7 +236,7 @@ function Home({ onSelect, onTeacher }) {
   return (
     <div className="wide">
       <h2>Choisissez votre QCM</h2>
-      <p className="muted">Une seule tentative par QCM. {DUR} secondes par question, sans retour en arrière.</p>
+      <p className="muted">Une seule tentative par QCM, sans retour en arrière. La durée par question est indiquée sur chaque carte.</p>
       {err && <p className="err">{err}</p>}
       <div className="grid">
         {TP_LIST.map((tp) => {
@@ -239,7 +253,7 @@ function Home({ onSelect, onTeacher }) {
               </div>
               <h3>{tp.title}</h3>
               <p className="desc">{tp.description}</p>
-              {tp.enabled && <p className="meta">{tp.questions.length} questions · {Math.round((tp.questions.length * DUR) / 60 * 10) / 10} min</p>}
+              {tp.enabled && <p className="meta">{tp.questions.length} questions · {durOf(tp)} s par question · {Math.round((tp.questions.length * durOf(tp)) / 60 * 10) / 10} min</p>}
               {tp.enabled && <p className="hint">{resumable ? "Une tentative est en cours sur cet appareil" : st.hint}</p>}
               <button className={"btn " + (ok ? "pri" : "out")} disabled={!ok} onClick={() => onSelect(tp.id)}>
                 {!tp.enabled ? "Indisponible" : closedForMe ? "Clôturé" : resumable ? "Reprendre" : "Choisir ce QCM"}
@@ -292,7 +306,7 @@ function Register({ tp, onBack, onNext }) {
     <div className="card">
       <p className="short">{tp.short}</p>
       <h2>{tp.title}</h2>
-      <p className="muted">{tp.questions.length} questions · {DUR} secondes par question · une seule tentative.</p>
+      <p className="muted">{tp.questions.length} questions · {durOf(tp)} secondes par question · une seule tentative.</p>
       <form onSubmit={submit} style={{ marginTop: "1.2rem" }}>
         <label htmlFor="prenom">Prénom</label>
         <input id="prenom" autoComplete="off" value={prenom} onChange={(e) => { setPrenom(e.target.value); setErr(""); }} />
@@ -341,7 +355,7 @@ function Waiting({ tp, student, onBack, onStart }) {
       <h2>{tp.title}</h2>
       <p>Inscrit(e) : <strong>{student.name}</strong></p>
       <ul className="rules">
-        <li>{tp.questions.length} questions, {DUR} secondes chacune (limite stricte : passage automatique à 0 s)</li>
+        <li>{tp.questions.length} questions, {durOf(tp)} secondes chacune (limite stricte : passage automatique à 0 s)</li>
         <li>Pas de retour en arrière, aucune correction pendant le quiz</li>
         <li>Une seule tentative : ne fermez pas la page</li>
         <li>À score égal, le temps de réponse le plus court est mieux classé</li>
@@ -364,6 +378,7 @@ function Waiting({ tp, student, onBack, onStart }) {
 
 /* ── Quiz : 30 s par question, limite stricte, résistant au rechargement ── */
 function Quiz({ tp, student, onDone }) {
+  const DUR = durOf(tp); // durée de ce QCM (remplace la valeur par défaut dans tout le composant)
   const N = tp.questions.length;
   const [p, setP] = useState(() => {
     const saved = loadP(tp.id, student.id) || {};
@@ -464,7 +479,24 @@ function Result({ tp, student, onHome }) {
           return <span key={i} className={"dot " + (a === q.a ? "g" : "r")} title={`Question ${i + 1}`}>{i + 1}</span>;
         })}
       </div>
-      <p className="note">Vert : bonne réponse · Rouge : mauvaise réponse ou temps écoulé. Les corrections seront données en classe.</p>
+      {tp.review && (
+        <div className="review">
+          {tp.questions.map((q, i) => {
+            const a = r?.answers?.[i];
+            const answered = Number.isInteger(a) && a >= 0;
+            const ok = a === q.a;
+            return (
+              <div key={i} className={"ritem " + (ok ? "g" : "r")}>
+                <div className="rhead"><b>{ok ? "✔ Bonne réponse" : answered ? "✘ Mauvaise réponse" : "✘ Sans réponse (temps écoulé)"}</b><span>Question {i + 1}</span></div>
+                <p className="rq">{q.q}</p>
+                <p>Votre réponse : <b>{answered ? q.o[a] : "aucune"}</b></p>
+                {!ok && <p>Bonne réponse : <b>{q.o[q.a]}</b></p>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+      <p className="note">{tp.review ? "Vert : bonne réponse · Rouge : mauvaise réponse ou temps écoulé. Ce détail reste consultable sur cet appareil." : "Vert : bonne réponse · Rouge : mauvaise réponse ou temps écoulé. Les corrections seront données en classe."}</p>
       <button className="btn pri" onClick={onHome}>Retour aux QCM</button>
     </div>
   );
@@ -492,7 +524,7 @@ function TeacherLogin({ onBack, onOk }) {
 }
 
 function Teacher({ onLogout }) {
-  const [active, setActive] = useState("tp1");
+  const [active, setActive] = useState("tp3");
   return (
     <div className="dash">
       <nav className="side">
@@ -766,5 +798,11 @@ th{color:var(--mut);font-size:.8rem}tr.mut td{color:var(--mut)}
 .rk{display:inline-grid;place-items:center;min-width:28px;height:28px;border-radius:50%;background:#e9ede6;font-weight:700;font-size:.85rem}
 .rk.top{background:#ffd54a}
 code{background:#eef2ec;padding:1px 6px;border-radius:5px;font-size:.85rem}
+.review{text-align:left;margin:1.2rem 0}
+.ritem{border-radius:12px;padding:.8rem 1rem;margin-bottom:.7rem;border-left:5px solid transparent}
+.ritem.g{background:var(--g1);border-left-color:var(--g5)}.ritem.r{background:#fbeceb;border-left-color:var(--red)}
+.rhead{display:flex;justify-content:space-between;gap:.5rem;font-size:.85rem;margin-bottom:.2rem}
+.ritem.g .rhead b{color:var(--g7)}.ritem.r .rhead b{color:var(--red)}.rhead span{color:var(--mut)}
+.rq{font-weight:600;margin:.2rem 0 .5rem}.ritem p{margin:.15rem 0;font-size:.92rem;word-break:break-word}
 @media(prefers-reduced-motion:reduce){.pulse{animation:none}.fill{transition:none}}
 `;
