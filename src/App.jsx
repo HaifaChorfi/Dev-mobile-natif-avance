@@ -76,11 +76,24 @@ const Q3 = [
   { q: "Comment afficher dans le Logcat la requête envoyée et la réponse JSON reçue pendant le TP ?", o: ["Ajouter un HttpLoggingInterceptor (BODY) à OkHttpClient, filtrer sur « OkHttp »", "Écrire un appel Log.d dans chaque fonction déclarée à l'intérieur de l'interface ApiService", "Ajouter l'annotation @Logging devant chaque fonction de l'interface ApiService de Retrofit", "Remplacer GsonConverterFactory par un convertisseur spécialisé dans la journalisation"], a: 0 },
 ];
 
+const Q4 = [
+  { q: "Quelle classe permet d'accéder aux capteurs d'un appareil Android ?", o: ["SensorManager", "SensorService", "HardwareManager", "SensorHelper"], a: 0 },
+  { q: "Quelle instruction permet de récupérer la liste complète des capteurs de l'appareil ?", o: ["sm.getAllSensors()", "sm.getSensorList(Sensor.TYPE_ALL)", "sm.getDefaultSensor(Sensor.TYPE_ALL)", "sm.listSensors()"], a: 1 },
+  { q: "Que retourne getDefaultSensor(type) lorsque l'appareil ne possède pas ce capteur ?", o: ["Une exception SensorNotFound", "null", "Un capteur virtuel", "0"], a: 1 },
+  { q: "Où faut-il enregistrer puis libérer l'écouteur d'un capteur ?", o: ["registerListener dans onCreate, unregisterListener dans onDestroy", "registerListener dans onResume, unregisterListener dans onPause", "registerListener dans onStart, jamais de libération", "Les deux dans onCreate"], a: 1 },
+  { q: "Quelles méthodes doit implémenter une classe qui implémente SensorEventListener ?", o: ["onSensorStart() et onSensorStop()", "onSensorChanged() et onAccuracyChanged()", "onValueChanged() et onSensorReady()", "onCreate() et onResume()"], a: 1 },
+  { q: "Mission 1 : quelle formule donne l'intensité a utilisée pour détecter une secousse ?", o: ["x + y + z", "√(x² + y² + z²)", "x × y × z", "(x + y + z) / 3"], a: 1 },
+  { q: "Mission 2 : comment calcule-t-on la valeur filtrée avec le filtre passe-bas (α = 0,8) ?", o: ["filtré = brut − ancien", "filtré = α × brut + (1 − α) × ancien", "filtré = α × ancien + (1 − α) × brut", "filtré = (ancien + brut) × α"], a: 2 },
+  { q: "Mission 2 : à quoi sert coerceIn(-maxX, maxX) dans le calcul de bulle.translationX ?", o: ["À filtrer le bruit du capteur", "À limiter le déplacement de la bulle aux bords du cadre", "À convertir les m/s² en pixels", "À inverser le sens de déplacement"], a: 1 },
+  { q: "Mission 2 : quelle constante de fréquence est utilisée pour écouter l'accéléromètre du niveau à bulle ?", o: ["SENSOR_DELAY_NORMAL", "SENSOR_DELAY_UI", "SENSOR_DELAY_GAME", "SENSOR_DELAY_SLOW"], a: 2 },
+  { q: "Mission 3 : le capteur de lumière mesure 500 lux. Quelle ambiance est affichée ?", o: ["Sombre", "Normale", "Très lumineuse", "Aucune, la valeur est hors limites"], a: 1 },
+];
+
 const TP_LIST = [
   { id: "tp1", short: "QCM1", title: "SharedPreferences", description: "Préférences persistantes : lecture/écriture, apply() vs commit(), modes d'accès, DataStore.", enabled: true, questions: Q1 },
   { id: "tp2", short: "QCM2", title: "SQLite — base de données locale", description: "SQLiteOpenHelper, CRUD, Cursor, requêtes paramétrées, migration de schéma.", enabled: true, questions: Q2 },
   { id: "tp3", short: "QCM3", title: "Retrofit — Web service REST", description: "Opérations HTTP (GET, POST, PUT, DELETE), annotations Retrofit, convertisseur Gson, OkHttp.", enabled: true, dur: 35, review: true, questions: Q3 },
-  { id: "tp4", short: "QCM4", title: "Géolocalisation", description: "Google Maps et localisation de l'utilisateur.", enabled: false },
+  { id: "tp4", short: "QCM4", title: "Utilisation des capteurs", description: "SensorManager, SensorEventListener, accéléromètre, filtre passe-bas, capteur de lumière (missions 1 à 3).", enabled: true, dur: 35, review: true, shuffle: true, questions: Q4 },
   { id: "tp5", short: "QCM5", title: "Connectivité", description: "Bluetooth, Wi-Fi et USB.", enabled: false },
   { id: "tp8", short: "QCM8", title: "Multimédia", description: "Lecteur audio et vidéo.", enabled: false },
   { id: "tp9", short: "QCM9", title: "Capteurs", description: "Accéléromètre, proximité, caméra, boussole.", enabled: false },
@@ -88,6 +101,24 @@ const TP_LIST = [
   { id: "tp11", short: "QCM11", title: "Publication Google Play", description: "Empaqueter, signer et publier une application.", enabled: false },
 ];
 const getTp = (id) => TP_LIST.find((t) => t.id === id);
+
+/* ── Mélange reproductible : ordre des questions et des options propre à chaque étudiant (identique après rechargement) ── */
+function seedRng(str) {
+  let h = 1779033703 ^ str.length;
+  for (let i = 0; i < str.length; i++) { h = Math.imul(h ^ str.charCodeAt(i), 3432918353); h = (h << 13) | (h >>> 19); }
+  return () => { h = Math.imul(h ^ (h >>> 16), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
+}
+const shuffleSeeded = (arr, rnd) => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+// Si tp.shuffle est vrai, renvoie une copie du QCM avec questions et options mélangées pour cet étudiant (« a » est recalculé).
+const forStudent = (tp, student) => {
+  if (!tp.shuffle) return tp;
+  const rnd = seedRng(`${tp.id}|${student.id}`);
+  const questions = shuffleSeeded(tp.questions, rnd).map((q) => {
+    const idx = shuffleSeeded(q.o.map((_, i) => i), rnd);
+    return { ...q, o: idx.map((i) => q.o[i]), a: idx.indexOf(q.a) };
+  });
+  return { ...tp, questions };
+};
 
 /* ═════════════ 3. UTILITAIRES ═════════════ */
 const tokens = (s) =>
@@ -209,8 +240,8 @@ export default function App() {
         {view === "home" && <Home onSelect={(id) => { setTpId(id); setView("register"); }} onTeacher={() => setView("tlogin")} />}
         {view === "register" && tp && <Register tp={tp} onBack={home} onNext={(s, phase) => { setStudent(s); setView(phase); }} />}
         {view === "waiting" && tp && student && <Waiting tp={tp} student={student} onBack={home} onStart={() => setView("quiz")} />}
-        {view === "quiz" && tp && student && <Quiz tp={tp} student={student} onDone={() => setView("result")} />}
-        {view === "result" && tp && student && <Result tp={tp} student={student} onHome={home} />}
+        {view === "quiz" && tp && student && <Quiz tp={forStudent(tp, student)} student={student} onDone={() => setView("result")} />}
+        {view === "result" && tp && student && <Result tp={forStudent(tp, student)} student={student} onHome={home} />}
         {view === "tlogin" && <TeacherLogin onBack={home} onOk={() => setView("teacher")} />}
         {view === "teacher" && <Teacher onLogout={home} />}
       </main>
