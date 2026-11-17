@@ -315,7 +315,11 @@ function Register({ tp, onBack, onNext }) {
       // Reprise sur ce même appareil (rechargement de la page)
       const saved = loadP(tp.id, s.id);
       if (saved && saved.uid === user.uid) {
-        return onNext(s, saved.phase === "done" ? "result" : saved.phase === "quiz" ? "quiz" : "waiting");
+        // Si l'enseignant a réinitialisé cet étudiant, la progression gardée sur l'appareil est obsolète.
+        let stillRegistered = true;
+        try { stillRegistered = (await get(ref(db, `attempts/${tp.id}/${s.id}`))).exists(); } catch {}
+        if (stillRegistered) return onNext(s, saved.phase === "done" ? "result" : saved.phase === "quiz" ? "quiz" : "waiting");
+        try { localStorage.removeItem(pkey(tp.id, s.id)); } catch {}
       }
       // Verrou « nom » : écriture unique imposée par les règles Firebase
       try {
@@ -556,6 +560,38 @@ function TeacherLogin({ onBack, onOk }) {
 
 function Teacher({ onLogout }) {
   const [active, setActive] = useState("tp3");
+  const [busyAll, setBusyAll] = useState(false);
+
+  // Réinitialise TOUS les étudiants de TOUS les QCM actifs : inscriptions, résultats et verrous « appareil ».
+  // Les sessions (en attente / ouverte / clôturée) ne sont pas modifiées.
+  async function resetAll() {
+    const list = TP_LIST.filter((t) => t.enabled);
+    if (!window.confirm(`Réinitialiser TOUS les étudiants dans TOUS les QCM (${list.map((t) => t.short).join(", ")}) ?\n\nToutes les inscriptions et tous les résultats seront supprimés. Les étudiants pourront repasser chaque QCM. Cette action est irréversible.`)) return;
+    if (!window.confirm("Dernière confirmation : supprimer définitivement les données de tous les étudiants ?")) return;
+    setBusyAll(true);
+    try {
+      const up = {};
+      const students = new Set();
+      for (const t of list) {
+        const [att, res, locks] = await Promise.all([
+          get(ref(db, `attempts/${t.id}`)),
+          get(ref(db, `responses/${t.id}`)),
+          get(ref(db, `uidLocks/${t.id}`)).catch(() => null), // lecture des verrous facultative
+        ]);
+        const a = att.val() || {}, r = res.val() || {};
+        Object.keys(a).forEach((id) => { up[`attempts/${t.id}/${id}`] = null; students.add(`${t.id}/${id}`); if (a[id]?.uid) up[`uidLocks/${t.id}/${a[id].uid}`] = null; });
+        Object.keys(r).forEach((id) => { up[`responses/${t.id}/${id}`] = null; students.add(`${t.id}/${id}`); if (r[id]?.uid) up[`uidLocks/${t.id}/${r[id].uid}`] = null; });
+        Object.keys(locks?.val() || {}).forEach((u) => { up[`uidLocks/${t.id}/${u}`] = null; });
+      }
+      if (!Object.keys(up).length) window.alert("Aucun étudiant à réinitialiser.");
+      else { await update(ref(db), up); window.alert(`Réinitialisation terminée : ${students.size} inscription(s) supprimée(s) (tous QCM confondus).`); }
+    } catch (e) {
+      console.error(e);
+      window.alert("Réinitialisation impossible (droits enseignant requis ou problème réseau).");
+    }
+    setBusyAll(false);
+  }
+
   return (
     <div className="dash">
       <nav className="side">
@@ -568,7 +604,10 @@ function Teacher({ onLogout }) {
       <div className="dcontent">
         <div className="between">
           <span className="muted">Tableau de bord enseignant</span>
-          <button className="btn ghost" onClick={onLogout}>Se déconnecter</button>
+          <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
+            <button className="btn danger" disabled={busyAll} onClick={resetAll}>{busyAll ? "Réinitialisation…" : "🗑 Réinitialiser tous les étudiants"}</button>
+            <button className="btn ghost" onClick={onLogout}>Se déconnecter</button>
+          </div>
         </div>
         <Admin key={active} tp={getTp(active)} />
       </div>
@@ -772,6 +811,7 @@ input:focus,button:focus-visible{outline:3px solid #f3c969;outline-offset:1px}
 .btn.pri{background:var(--g7);color:#fff}.btn.pri:hover:not(:disabled){background:var(--g9)}
 .btn.out{background:#fff;border-color:var(--line);color:var(--mut)}
 .btn.ghost{background:transparent;border-color:var(--line);color:var(--ink)}
+.btn.danger{background:#fff;border-color:#c62828;color:#c62828}.btn.danger:hover:not(:disabled){background:#c62828;color:#fff}
 .btn.sm{padding:.2rem .55rem;font-size:.78rem}
 .btn:disabled{opacity:.55;cursor:not-allowed}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin:1.3rem 0}
