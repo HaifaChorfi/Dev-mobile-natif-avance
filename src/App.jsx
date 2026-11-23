@@ -89,16 +89,29 @@ const Q4 = [
   { q: "Mission 3 : le capteur de lumière mesure 500 lux. Quelle ambiance est affichée ?", o: ["Sombre", "Normale", "Très lumineuse", "Aucune, la valeur est hors limites"], a: 1 },
 ];
 
+const Q5 = [
+  { q: "Quelle instruction crée un MediaPlayer prêt à lire le fichier res/raw/musique.mp3 ?", o: ["MediaPlayer.create(this, R.raw.musique)", "MediaPlayer(\"musique.mp3\")", "MediaPlayer.open(R.raw.musique)", "MediaPlayer.load(this, \"res/raw/musique\")"], a: 0 },
+  { q: "Où faut-il appeler mp.release() dans AudioActivity, et pourquoi ?", o: ["Dans onCreate(), juste après create(), pour économiser la mémoire avant la lecture", "Dans le clic sur Pause, pour que le son s'arrête définitivement", "Dans onDestroy(), pour libérer le lecteur et ses ressources audio quand l'écran est fermé", "Nulle part : le ramasse-miettes libère toujours le lecteur immédiatement"], a: 2 },
+  { q: "Pourquoi utilise-t-on un SoundPool plutôt qu'un MediaPlayer pour le déclic « clic.wav » de 0,2 s ?", o: ["MediaPlayer ne sait pas lire les fichiers au format WAV", "SoundPool charge les sons courts en mémoire : faible latence et plusieurs sons simultanés", "SoundPool lit en continu les fichiers longs, ce qui convient mieux aux morceaux de musique", "SoundPool n'a jamais besoin d'être libéré avec release()"], a: 1 },
+  { q: "Quel URI permet de lire avec setVideoURI() la vidéo presentation.mp4 stockée dans res/raw ?", o: ["Uri.parse(\"file:///res/raw/presentation.mp4\")", "Uri.parse(\"res/raw/presentation\")", "Uri.parse(\"R.raw.presentation\")", "Uri.parse(\"android.resource://$packageName/${R.raw.presentation}\")"], a: 3 },
+  { q: "Dans val mc = MediaController(this), que fait l'instruction mc.setAnchorView(videoView) ?", o: ["Elle charge la vidéo et lance immédiatement la lecture", "Elle ancre la barre de contrôle sur le VideoView : elle s'affiche dans sa zone", "Elle enregistre la position de lecture pour la restaurer après une rotation", "Elle demande à l'utilisateur de choisir une vidéo dans la galerie"], a: 1 },
+  { q: "Pourquoi sauvegarde-t-on videoView.currentPosition dans onSaveInstanceState() ?", o: ["Pour enregistrer la vidéo sur le disque du téléphone", "Pour que le MediaController puisse s'afficher à nouveau", "Pour libérer la mémoire utilisée par le VideoView", "Pour reprendre la lecture au même endroit avec seekTo() après la recréation de l'activité (rotation)"], a: 3 },
+  { q: "Comment demander la permission CAMERA à l'exécution avec l'API moderne dans CameraActivity ?", o: ["registerForActivityResult(ActivityResultContracts.RequestPermission()) puis launch(Manifest.permission.CAMERA)", "Déclarer <uses-permission> dans le manifeste suffit : aucune demande à l'exécution n'est nécessaire", "Appeler directement Camera.open() : Android affiche alors la demande tout seul", "Appeler startActivityForResult(Manifest.permission.CAMERA) puis lire onPermissionResult()"], a: 0 },
+  { q: "Quel est le rôle de provider.bindToLifecycle(this, selector, preview, imageCapture) dans startCamera() ?", o: ["Elle enregistre chaque photo prise dans la galerie du téléphone", "Elle demande la permission CAMERA à l'utilisateur", "Elle prend une photo à chaque appel de la fonction", "Elle relie les cas d'usage au cycle de vie de l'activité : la caméra s'ouvre et se ferme automatiquement"], a: 3 },
+  { q: "Dans la version simplifiée de prendrePhoto(), comment enregistre-t-on la photo prise par ImageCapture ?", o: ["On écrit l'image dans le dossier res/raw du projet, puis on la relit avec SoundPool", "On appelle preview.setSurfaceProvider(fichier) : l'aperçu est alors enregistré sur le téléphone", "On crée un File dans getExternalFilesDir(null) avec un nom unique, puis on le passe à ImageCapture.OutputFileOptions.Builder(fichier) pour takePicture()", "On appelle bindToLifecycle() avec le nom du fichier : la photo est enregistrée à chaque liaison"], a: 2 },
+  { q: "Quelle séquence permet de basculer entre la caméra avant et la caméra arrière ?", o: ["Appeler bindToLifecycle() une seconde fois, sans libérer la caméra précédente", "Redémarrer complètement l'application pour que la caméra change", "Modifier lensFacing, puis relancer startCamera() qui appelle unbindAll() avant bindToLifecycle()", "Appeler previewView.setLensFacing(LENS_FACING_BACK) : le PreviewView change de caméra"], a: 2 },
+];
+
 const TP_LIST = [
   { id: "tp1", short: "QCM1", title: "SharedPreferences", description: "Préférences persistantes : lecture/écriture, apply() vs commit(), modes d'accès, DataStore.", enabled: true, questions: Q1 },
   { id: "tp2", short: "QCM2", title: "SQLite — base de données locale", description: "SQLiteOpenHelper, CRUD, Cursor, requêtes paramétrées, migration de schéma.", enabled: true, questions: Q2 },
   { id: "tp3", short: "QCM3", title: "Retrofit — Web service REST", description: "Opérations HTTP (GET, POST, PUT, DELETE), annotations Retrofit, convertisseur Gson, OkHttp.", enabled: true, dur: 35, review: true, questions: Q3 },
   { id: "tp4", short: "QCM4", title: "Utilisation des capteurs", description: "SensorManager, SensorEventListener, accéléromètre, filtre passe-bas, capteur de lumière (missions 1 à 3).", enabled: true, dur: 35, review: true, shuffle: true, questions: Q4 },
-  { id: "tp5", short: "QCM5", title: "Connectivité", description: "Bluetooth, Wi-Fi et USB.", enabled: false },
-  { id: "tp8", short: "QCM8", title: "Multimédia", description: "Lecteur audio et vidéo.", enabled: false },
-  { id: "tp9", short: "QCM9", title: "Capteurs", description: "Accéléromètre, proximité, caméra, boussole.", enabled: false },
-  { id: "tp10", short: "QCM10", title: "Fragments", description: "Interfaces avancées avec Fragments.", enabled: false },
-  { id: "tp11", short: "QCM11", title: "Publication Google Play", description: "Empaqueter, signer et publier une application.", enabled: false },
+  { id: "tp5", short: "QCM5", title: "Gestion du multimédia", description: "Son (MediaPlayer, SoundPool), vidéo (VideoView) et caméra (CameraX, permissions, MediaStore) : parties A, B et C du TP.", enabled: true, dur: 35, review: true, shuffle: true, questions: Q5 },
+  { id: "tp6", short: "QCM6", title: "Services", description: "Services", enabled: false },
+  { id: "tp7", short: "QCM7", title: "Connectivité réseau ", description: ": Bluetooth, Wifi, etc", enabled: false },
+  { id: "tp8", short: "QCM8", title: "Fragments", description: "Interfaces avancées avec Fragments.", enabled: false },
+  { id: "tp9", short: "QCM9", title: "Publication Google Play", description: "Empaqueter, signer et publier une application.", enabled: false },
 ];
 const getTp = (id) => TP_LIST.find((t) => t.id === id);
 
